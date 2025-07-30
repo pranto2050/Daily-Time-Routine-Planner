@@ -127,16 +127,16 @@
         <!-- Stats Dashboard -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div class="glass-card rounded-xl p-4 text-center">
-                <div class="text-2xl font-bold text-white" id="studyHours">0h</div>
-                <div class="text-white/80 text-sm">Study Time</div>
+                <div class="text-2xl font-bold text-white" id="classHours">0h</div>
+                <div class="text-white/80 text-sm">Class Time</div>
             </div>
             <div class="glass-card rounded-xl p-4 text-center">
                 <div class="text-2xl font-bold text-white" id="codingHours">0h</div>
                 <div class="text-white/80 text-sm">Coding Time</div>
             </div>
             <div class="glass-card rounded-xl p-4 text-center">
-                <div class="text-2xl font-bold text-white" id="mobileHours">0h</div>
-                <div class="text-white/80 text-sm">Mobile Time</div>
+                <div class="text-2xl font-bold text-white" id="studyHours">0h</div>
+                <div class="text-white/80 text-sm">Study Time</div>
             </div>
             <div class="glass-card rounded-xl p-4 text-center">
                 <div class="text-2xl font-bold text-white" id="sleepHours">0h</div>
@@ -224,6 +224,82 @@
             </div>
         </div>
 
+        <!-- Total Hours Summary Section -->
+        <div class="glass rounded-2xl p-6 mt-6">
+            <h3 class="text-xl font-bold text-white mb-4">⏰ Total Hours Summary</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Total Scheduled Hours -->
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">📊</div>
+                    <div class="text-2xl font-bold text-white" id="totalScheduledHours">0h</div>
+                    <div class="text-white/80 text-sm">Total Scheduled</div>
+                </div>
+                
+                <!-- Productive Hours -->
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">🎯</div>
+                    <div class="text-2xl font-bold text-green-400" id="productiveHours">0h</div>
+                    <div class="text-white/80 text-sm">Productive Time</div>
+                    <div class="text-white/60 text-xs mt-1">(Class + Study + Coding)</div>
+                </div>
+                
+                <!-- Personal Care Hours -->
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">🧘</div>
+                    <div class="text-2xl font-bold text-blue-400" id="personalCareHours">0h</div>
+                    <div class="text-white/80 text-sm">Personal Care</div>
+                    <div class="text-white/60 text-xs mt-1">(Sleep + Meals + Personal)</div>
+                </div>
+                
+                <!-- Free Time Hours -->
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">🎮</div>
+                    <div class="text-2xl font-bold text-purple-400" id="freeTimeHours">0h</div>
+                    <div class="text-white/80 text-sm">Free Time</div>
+                    <div class="text-white/60 text-xs mt-1">(Mobile + Free + Exercise)</div>
+                </div>
+                
+                <!-- Productivity Percentage -->
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">📈</div>
+                    <div class="text-2xl font-bold text-yellow-400" id="productivityPercentage">0%</div>
+                    <div class="text-white/80 text-sm">Productivity Rate</div>
+                    <div class="text-white/60 text-xs mt-1">(Productive / Total)</div>
+                </div>
+                
+                <!-- Balance Score -->
+                <div class="glass-card rounded-xl p-4 text-center">
+                    <div class="text-3xl mb-2">⚖️</div>
+                    <div class="text-2xl font-bold text-cyan-400" id="balanceScore">0/10</div>
+                    <div class="text-white/80 text-sm">Balance Score</div>
+                    <div class="text-white/60 text-xs mt-1">(Work-Life Balance)</div>
+                </div>
+            </div>
+            
+            <!-- Progress Bars -->
+            <div class="mt-6 space-y-4">
+                <div>
+                    <div class="flex justify-between text-white/80 text-sm mb-2">
+                        <span>Daily Progress</span>
+                        <span id="dailyProgressText">0/24 hours</span>
+                    </div>
+                    <div class="w-full bg-white/20 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500" id="dailyProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="flex justify-between text-white/80 text-sm mb-2">
+                        <span>Productivity Goal</span>
+                        <span id="productivityGoalText">0/8 hours target</span>
+                    </div>
+                    <div class="w-full bg-white/20 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-yellow-400 to-green-500 h-3 rounded-full transition-all duration-500" id="productivityProgressBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Developer Section -->
         <div class="glass rounded-2xl p-6 mt-6">
             <div class="text-center">
@@ -296,6 +372,7 @@
                 <div>
                     <label class="block text-white/80 mb-2">Category</label>
                     <select id="categoryInput" class="w-full p-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-white/60 focus:outline-none">
+                        <option value="class">🎓 Class</option>
                         <option value="study">📚 Study</option>
                         <option value="coding">💻 Coding</option>
                         <option value="mobile">📱 Mobile</option>
@@ -330,6 +407,7 @@
         let currentViewDate = new Date(); // Track which day we're viewing
         
         const categoryEmojis = {
+            class: '🎓',
             study: '📚',
             coding: '💻',
             mobile: '📱',
@@ -408,7 +486,8 @@
             const now = new Date();
             const today = new Date();
             const isViewingToday = currentViewDate.toDateString() === today.toDateString();
-            const isViewingYesterday = currentViewDate.toDateString() === new Date(today.getTime() - 24*60*60*1000).toDateString();
+            const isViewingPast = currentViewDate < today && !isViewingToday;
+            const isViewingFuture = currentViewDate > today;
             
             // Only apply time-based status if viewing today
             if (isViewingToday) {
@@ -491,8 +570,8 @@
                         </div>
                     `;
                 }).join('');
-            } else if (isViewingYesterday) {
-                // For yesterday, show all activities as completed (red) with no edit/delete buttons
+            } else if (isViewingPast) {
+                // For past dates, show all activities as completed (red) with no edit/delete buttons
                 container.innerHTML = schedule.map((item, index) => {
                     return `
                         <div class="time-slot completed rounded-xl p-4">
@@ -513,8 +592,8 @@
                         </div>
                     `;
                 }).join('');
-            } else {
-                // For other days (future), show all activities as editable (blue)
+            } else if (isViewingFuture) {
+                // For future days, show all activities as editable (blue)
                 container.innerHTML = schedule.map((item, index) => {
                     return `
                         <div class="time-slot upcoming rounded-xl p-4">
@@ -543,10 +622,15 @@
         
         function updateStats() {
             const stats = {
+                class: 0,
                 study: 0,
                 coding: 0,
                 mobile: 0,
-                sleep: 0
+                sleep: 0,
+                meal: 0,
+                exercise: 0,
+                personal: 0,
+                free: 0
             };
             
             schedule.forEach(item => {
@@ -555,10 +639,51 @@
                 }
             });
             
-            document.getElementById('studyHours').textContent = `${stats.study}h`;
+            // Update individual category stats
+            document.getElementById('classHours').textContent = `${stats.class}h`;
             document.getElementById('codingHours').textContent = `${stats.coding}h`;
-            document.getElementById('mobileHours').textContent = `${stats.mobile}h`;
+            document.getElementById('studyHours').textContent = `${stats.study}h`;
             document.getElementById('sleepHours').textContent = `${stats.sleep}h`;
+            
+            // Calculate total hours summary
+            const totalScheduled = Object.values(stats).reduce((sum, hours) => sum + hours, 0);
+            const productiveHours = stats.class + stats.study + stats.coding;
+            const personalCareHours = stats.sleep + stats.meal + stats.personal;
+            const freeTimeHours = stats.mobile + stats.free + stats.exercise;
+            
+            // Calculate percentages and scores
+            const productivityPercentage = totalScheduled > 0 ? Math.round((productiveHours / totalScheduled) * 100) : 0;
+            const dailyProgressPercentage = Math.min((totalScheduled / 24) * 100, 100);
+            const productivityGoalPercentage = Math.min((productiveHours / 8) * 100, 100);
+            
+            // Calculate balance score (0-10)
+            let balanceScore = 0;
+            if (totalScheduled > 0) {
+                const sleepRatio = stats.sleep / totalScheduled;
+                const productiveRatio = productiveHours / totalScheduled;
+                const freeRatio = freeTimeHours / totalScheduled;
+                
+                // Ideal ratios: Sleep 30-35%, Productive 30-40%, Free 20-30%
+                const sleepScore = sleepRatio >= 0.3 && sleepRatio <= 0.35 ? 3 : (sleepRatio >= 0.25 && sleepRatio <= 0.4 ? 2 : 1);
+                const productiveScore = productiveRatio >= 0.3 && productiveRatio <= 0.4 ? 4 : (productiveRatio >= 0.25 && productiveRatio <= 0.45 ? 3 : 2);
+                const freeScore = freeRatio >= 0.2 && freeRatio <= 0.3 ? 3 : (freeRatio >= 0.15 && freeRatio <= 0.35 ? 2 : 1);
+                
+                balanceScore = sleepScore + productiveScore + freeScore;
+            }
+            
+            // Update total hours summary
+            document.getElementById('totalScheduledHours').textContent = `${totalScheduled}h`;
+            document.getElementById('productiveHours').textContent = `${productiveHours}h`;
+            document.getElementById('personalCareHours').textContent = `${personalCareHours}h`;
+            document.getElementById('freeTimeHours').textContent = `${freeTimeHours}h`;
+            document.getElementById('productivityPercentage').textContent = `${productivityPercentage}%`;
+            document.getElementById('balanceScore').textContent = `${balanceScore}/10`;
+            
+            // Update progress bars
+            document.getElementById('dailyProgressText').textContent = `${totalScheduled}/24 hours`;
+            document.getElementById('dailyProgressBar').style.width = `${dailyProgressPercentage}%`;
+            document.getElementById('productivityGoalText').textContent = `${productiveHours}/8 hours target`;
+            document.getElementById('productivityProgressBar').style.width = `${productivityGoalPercentage}%`;
         }
         
         function previousDay() {
@@ -576,27 +701,27 @@
         function updateScheduleTitle() {
             const today = new Date();
             const isToday = currentViewDate.toDateString() === today.toDateString();
-            const isYesterday = currentViewDate.toDateString() === new Date(today.getTime() - 24*60*60*1000).toDateString();
-            const isTomorrow = currentViewDate.toDateString() === new Date(today.getTime() + 24*60*60*1000).toDateString();
+            const isPast = currentViewDate < today && !isToday;
+            const isFuture = currentViewDate > today;
             
             let title = '';
             if (isToday) {
                 title = "Today's Schedule";
-            } else if (isYesterday) {
-                title = "Yesterday's Schedule";
-            } else if (isTomorrow) {
-                title = "Tomorrow's Schedule";
-            } else {
+            } else if (isPast) {
                 const dayName = currentViewDate.toLocaleDateString('en-US', { weekday: 'long' });
                 const dateStr = currentViewDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                title = `${dayName}, ${dateStr} Schedule`;
+                title = `${dayName}, ${dateStr} Schedule (Past)`;
+            } else if (isFuture) {
+                const dayName = currentViewDate.toLocaleDateString('en-US', { weekday: 'long' });
+                const dateStr = currentViewDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                title = `${dayName}, ${dateStr} Schedule (Future)`;
             }
             
             document.getElementById('scheduleTitle').textContent = title;
             
-            // Show/hide add button based on current view
+            // Show/hide add button based on current view - only show for today and future dates
             const addButton = document.getElementById('addButton');
-            if (isToday || isTomorrow) {
+            if (isToday || isFuture) {
                 addButton.style.display = 'flex';
             } else {
                 addButton.style.display = 'none';
@@ -611,33 +736,33 @@
             // University class schedules by day
             const weeklySchedule = {
                 Saturday: [
-                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 (Section C) - Room: 803', category: 'study', duration: 1 },
-                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 1022', category: 'coding', duration: 1 }
+                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 (Section C) - Room: 803', category: 'class', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 1022', category: 'class', duration: 1 }
                 ],
                 Sunday: [
-                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 1003', category: 'coding', duration: 1 },
-                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 (Section C) - Room: 803', category: 'study', duration: 1 }
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 1003', category: 'class', duration: 1 },
+                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 (Section C) - Room: 803', category: 'class', duration: 1 }
                 ],
                 Monday: [
-                    { time: '08:30', ampm: 'AM', activity: 'CSC 434 (Section J) - Comlab: 8', category: 'coding', duration: 1 },
-                    { time: '09:35', ampm: 'AM', activity: 'CSC 434 (Section J) - Comlab: 8', category: 'coding', duration: 1 },
-                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 - Room: 803', category: 'study', duration: 1 },
-                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 1023', category: 'coding', duration: 1 },
-                    { time: '01:10', ampm: 'PM', activity: 'CSC 330 (Section F) - EEElab6', category: 'coding', duration: 1 },
-                    { time: '02:15', ampm: 'PM', activity: 'CSC 330 (Section F) - EEElab6', category: 'coding', duration: 1 },
-                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 504', category: 'coding', duration: 1 }
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 434 (Section J) - Comlab: 8', category: 'class', duration: 1 },
+                    { time: '09:35', ampm: 'AM', activity: 'CSC 434 (Section J) - Comlab: 8', category: 'class', duration: 1 },
+                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 - Room: 803', category: 'class', duration: 1 },
+                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 1023', category: 'class', duration: 1 },
+                    { time: '01:10', ampm: 'PM', activity: 'CSC 330 (Section F) - EEElab6', category: 'class', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 330 (Section F) - EEElab6', category: 'class', duration: 1 },
+                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 504', category: 'class', duration: 1 }
                 ],
                 Tuesday: [
-                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 1008', category: 'coding', duration: 1 },
-                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 821', category: 'coding', duration: 1 },
-                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 1022', category: 'coding', duration: 1 },
-                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 520', category: 'coding', duration: 1 }
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 1008', category: 'class', duration: 1 },
+                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 821', category: 'class', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 1022', category: 'class', duration: 1 },
+                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 520', category: 'class', duration: 1 }
                 ],
                 Wednesday: [
-                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 904', category: 'coding', duration: 1 },
-                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 1009', category: 'coding', duration: 1 },
-                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 905', category: 'coding', duration: 1 },
-                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 520', category: 'coding', duration: 1 }
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 904', category: 'class', duration: 1 },
+                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 1009', category: 'class', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 905', category: 'class', duration: 1 },
+                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 520', category: 'class', duration: 1 }
                 ],
                 Thursday: [
                     // Holiday - No classes, relaxed schedule
@@ -667,10 +792,11 @@
                 { time: '06:30', ampm: 'AM', activity: 'Wake up & Morning routine', category: 'personal', duration: 1 },
                 { time: '07:30', ampm: 'AM', activity: 'Breakfast', category: 'meal', duration: 1 },
                 { time: '12:45', ampm: 'PM', activity: 'Lunch Break', category: 'meal', duration: 0.5 },
-                { time: '05:00', ampm: 'PM', activity: 'Study/Assignment time', category: 'study', duration: 2 },
+                { time: '04:30', ampm: 'PM', activity: 'Personal Coding Practice', category: 'coding', duration: 1.5 },
+                { time: '06:00', ampm: 'PM', activity: 'Study/Assignment time', category: 'study', duration: 1 },
                 { time: '07:00', ampm: 'PM', activity: 'Dinner', category: 'meal', duration: 1 },
                 { time: '08:00', ampm: 'PM', activity: 'Free time/Mobile', category: 'mobile', duration: 1 },
-                { time: '09:00', ampm: 'PM', activity: 'Review notes', category: 'study', duration: 1.5 },
+                { time: '09:00', ampm: 'PM', activity: 'Coding Projects/Practice', category: 'coding', duration: 1.5 },
                 { time: '10:30', ampm: 'PM', activity: 'Prepare for bed', category: 'personal', duration: 0.5 },
                 { time: '11:00', ampm: 'PM', activity: 'Sleep', category: 'sleep', duration: 7.5 }
             ];
@@ -932,5 +1058,5 @@
         renderSchedule();
         updateStats();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96767d1e5141ba53',t:'MTc1Mzg5NTYyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9676d833c6dde87e',t:'MTc1Mzg5OTM1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

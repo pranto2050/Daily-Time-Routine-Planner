@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Time Routine Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .time-slot {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .time-slot:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .time-slot::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle 120px at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                        rgba(255, 255, 255, 0.08) 0%, 
+                        transparent 60%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+        
+        .time-slot:hover::before {
+            opacity: 1;
+        }
+        
+        .time-slot.current {
+            background: rgba(34, 197, 94, 0.2);
+            border: 2px solid rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+        
+        .time-slot.upcoming {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .time-slot.completed {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            opacity: 0.8;
+        }
+        
+        .floating-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 50;
+        }
+        
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+        
+        .countdown-timer {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #10b981;
+        }
+        
+        .motivational-quote {
+            animation: fadeInOut 8s infinite;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="glass rounded-2xl p-6 mb-6">
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-white mb-2">🕐 Daily Time Routine Planner</h1>
+                    <p class="text-white/80">Create your perfect balanced schedule for focus and productivity</p>
+                    <div class="motivational-quote mt-4 text-white/90 italic">
+                        "Success is the sum of small efforts repeated day in and day out." - Robert Collier
+                    </div>
+                </div>
+                <div class="glass-card rounded-xl p-4 text-center min-w-[200px]">
+                    <div class="text-2xl font-bold text-white font-mono" id="headerTime">00:00:00</div>
+                    <div class="text-white/80 text-sm mt-1" id="headerDate">Loading...</div>
+                    <div class="text-white/60 text-xs mt-1" id="headerDay">Today</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="glass-card rounded-xl p-4 text-center">
+                <div class="text-2xl font-bold text-white" id="studyHours">0h</div>
+                <div class="text-white/80 text-sm">Study Time</div>
+            </div>
+            <div class="glass-card rounded-xl p-4 text-center">
+                <div class="text-2xl font-bold text-white" id="codingHours">0h</div>
+                <div class="text-white/80 text-sm">Coding Time</div>
+            </div>
+            <div class="glass-card rounded-xl p-4 text-center">
+                <div class="text-2xl font-bold text-white" id="mobileHours">0h</div>
+                <div class="text-white/80 text-sm">Mobile Time</div>
+            </div>
+            <div class="glass-card rounded-xl p-4 text-center">
+                <div class="text-2xl font-bold text-white" id="sleepHours">0h</div>
+                <div class="text-white/80 text-sm">Sleep Time</div>
+            </div>
+        </div>
+
+        <!-- Add Schedule Section -->
+        <div class="glass rounded-2xl p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white">📅 Add New Schedule</h3>
+                    <p class="text-white/80 text-sm">Create your personalized time slots</p>
+                </div>
+                <button onclick="openModal()" class="glass-card px-6 py-3 rounded-lg text-white hover:bg-white/20 transition-all font-semibold">
+                    ➕ Add Schedule
+                </button>
+            </div>
+            
+            <!-- Error Message Display -->
+            <div id="errorMessage" class="hidden bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-red-400 text-xl">⚠️</span>
+                    <div>
+                        <div class="text-red-300 font-semibold">Schedule Conflict Detected!</div>
+                        <div class="text-red-200 text-sm" id="errorDetails">Time slot is already occupied.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Success Message Display -->
+            <div id="successMessage" class="hidden bg-green-500/20 border border-green-500/50 rounded-lg p-4 mb-4">
+                <div class="flex items-center space-x-2">
+                    <span class="text-green-400 text-xl">✅</span>
+                    <div>
+                        <div class="text-green-300 font-semibold">Schedule Added Successfully!</div>
+                        <div class="text-green-200 text-sm">Your new activity has been added to the schedule.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Container -->
+        <div class="glass rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white" id="scheduleTitle">Today's Schedule</h2>
+                    <div class="text-white/80 text-sm mt-1">Current time: <span id="currentTime" class="font-mono"></span></div>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="previousDay()" class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition-all">
+                        ← Previous Day
+                    </button>
+                    <button onclick="nextDay()" class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition-all">
+                        Next Day →
+                    </button>
+                    <button onclick="loadSampleSchedule()" class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition-all">
+                        Load University Schedule
+                    </button>
+                </div>
+            </div>
+            
+            <div id="scheduleContainer" class="space-y-3">
+                <div class="text-center text-white/60 py-8">
+                    <div class="text-4xl mb-2">📅</div>
+                    <p>Your schedule is empty. Click the + button to add activities!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="glass rounded-2xl p-6 mt-6">
+            <h3 class="text-xl font-bold text-white mb-4">💡 Tips to Stay Disciplined</h3>
+            <div class="grid md:grid-cols-2 gap-4 text-white/90">
+                <div class="space-y-2">
+                    <p>• Start with small, achievable goals</p>
+                    <p>• Use the 2-minute rule for habit formation</p>
+                    <p>• Prepare everything the night before</p>
+                </div>
+                <div class="space-y-2">
+                    <p>• Track your progress daily</p>
+                    <p>• Reward yourself for consistency</p>
+                    <p>• Be flexible but committed</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Developer Section -->
+        <div class="glass rounded-2xl p-6 mt-6">
+            <div class="text-center">
+                <h3 class="text-xl font-bold text-white mb-4">👨‍💻 Developer Information</h3>
+                <div class="glass-card rounded-xl p-6 max-w-md mx-auto">
+                    <div class="text-3xl mb-3">🧑‍🎓</div>
+                    <div class="space-y-3 text-white/90">
+                        <div>
+                            <div class="text-lg font-semibold text-white">Md. Pranto Islam</div>
+                            <div class="text-sm text-white/70">Full Stack Developer</div>
+                        </div>
+                        
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-center space-x-2">
+                                <span class="text-white/60">📱</span>
+                                <span>01979728818</span>
+                            </div>
+                            <div class="flex items-center justify-center space-x-2">
+                                <span class="text-white/60">✉️</span>
+                                <span>prantoislamnt51@gmail.com</span>
+                            </div>
+                            <div class="flex items-center justify-center space-x-2">
+                                <span class="text-white/60">🎓</span>
+                                <span>Student at IUBAT University</span>
+                            </div>
+                            <div class="flex items-center justify-center space-x-2">
+                                <span class="text-white/60">📍</span>
+                                <span>Uttara-sector(10), Dhaka-1230</span>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-3 border-t border-white/20">
+                            <div class="text-xs text-white/60 italic">
+                                "Building efficient solutions for better productivity"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Add Button -->
+    <button onclick="openModal()" class="floating-btn glass-card w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl hover:scale-110 transition-transform" id="addButton">
+        +
+    </button>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 modal-overlay hidden items-center justify-center z-50">
+        <div class="glass-card rounded-2xl p-6 m-4 w-full max-w-md">
+            <h3 class="text-xl font-bold text-white mb-4" id="modalTitle">Add New Activity</h3>
+            
+            <form id="activityForm" class="space-y-4">
+                <div>
+                    <label class="block text-white/80 mb-2">Time</label>
+                    <div class="flex gap-2">
+                        <input type="time" id="timeInput" class="flex-1 p-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:border-white/60 focus:outline-none">
+                        <select id="ampmInput" class="p-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-white/60 focus:outline-none">
+                            <option value="AM">AM</option>
+                            <option value="PM">PM</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-white/80 mb-2">Activity</label>
+                    <input type="text" id="activityInput" placeholder="e.g., Study session 1" class="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:border-white/60 focus:outline-none">
+                </div>
+                
+                <div>
+                    <label class="block text-white/80 mb-2">Category</label>
+                    <select id="categoryInput" class="w-full p-3 rounded-lg bg-white/20 text-white border border-white/30 focus:border-white/60 focus:outline-none">
+                        <option value="study">📚 Study</option>
+                        <option value="coding">💻 Coding</option>
+                        <option value="mobile">📱 Mobile</option>
+                        <option value="sleep">😴 Sleep</option>
+                        <option value="meal">🍽️ Meal</option>
+                        <option value="exercise">🏃 Exercise</option>
+                        <option value="personal">🧘 Personal</option>
+                        <option value="free">🎯 Free Time</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-white/80 mb-2">Duration (hours)</label>
+                    <input type="number" id="durationInput" min="0.25" max="12" step="0.25" value="1" class="w-full p-3 rounded-lg bg-white/20 text-white placeholder-white/60 border border-white/30 focus:border-white/60 focus:outline-none">
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="submit" class="flex-1 bg-white/20 hover:bg-white/30 text-white py-3 rounded-lg transition-all">
+                        <span id="submitText">Add Activity</span>
+                    </button>
+                    <button type="button" onclick="closeModal()" class="px-6 py-3 text-white/80 hover:text-white transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let schedule = [];
+        let editingIndex = -1;
+        let currentViewDate = new Date(); // Track which day we're viewing
+        
+        const categoryEmojis = {
+            study: '📚',
+            coding: '💻',
+            mobile: '📱',
+            sleep: '😴',
+            meal: '🍽️',
+            exercise: '🏃',
+            personal: '🧘',
+            free: '🎯'
+        };
+        
+        const motivationalQuotes = [
+            "Success is the sum of small efforts repeated day in and day out. - Robert Collier",
+            "The way to get started is to quit talking and begin doing. - Walt Disney",
+            "Don't watch the clock; do what it does. Keep going. - Sam Levenson",
+            "Time is what we want most, but what we use worst. - William Penn",
+            "Your future is created by what you do today, not tomorrow. - Robert Kiyosaki"
+        ];
+        
+        function openModal() {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+            document.getElementById('timeInput').focus();
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+            document.getElementById('activityForm').reset();
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = 'Add New Activity';
+            document.getElementById('submitText').textContent = 'Add Activity';
+        }
+        
+        function editActivity(index) {
+            const activity = schedule[index];
+            editingIndex = index;
+            
+            document.getElementById('timeInput').value = activity.time;
+            document.getElementById('ampmInput').value = activity.ampm;
+            document.getElementById('activityInput').value = activity.activity;
+            document.getElementById('categoryInput').value = activity.category;
+            document.getElementById('durationInput').value = activity.duration;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Activity';
+            document.getElementById('submitText').textContent = 'Update Activity';
+            
+            openModal();
+        }
+        
+        function deleteActivity(index) {
+            schedule.splice(index, 1);
+            renderSchedule();
+            updateStats();
+        }
+        
+        function renderSchedule() {
+            const container = document.getElementById('scheduleContainer');
+            
+            if (schedule.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-white/60 py-8">
+                        <div class="text-4xl mb-2">📅</div>
+                        <p>Your schedule is empty. Click the + button to add activities!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Sort schedule by 24-hour time for proper ordering
+            schedule.sort((a, b) => {
+                const timeA = convertTo24Hour(a.time, a.ampm);
+                const timeB = convertTo24Hour(b.time, b.ampm);
+                return timeA.localeCompare(timeB);
+            });
+            
+            const now = new Date();
+            const today = new Date();
+            const isViewingToday = currentViewDate.toDateString() === today.toDateString();
+            const isViewingYesterday = currentViewDate.toDateString() === new Date(today.getTime() - 24*60*60*1000).toDateString();
+            
+            // Only apply time-based status if viewing today
+            if (isViewingToday) {
+                const currentTime24 = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                
+                // Find current task and sort: current first, then upcoming, then completed
+                let currentTaskIndex = -1;
+                const sortedSchedule = [];
+                
+                schedule.forEach((item, index) => {
+                    const item24Time = convertTo24Hour(item.time, item.ampm);
+                    const itemEndTime = calculateEndTime(item24Time, item.duration);
+                    
+                    if (currentTime24 >= item24Time && currentTime24 < itemEndTime) {
+                        currentTaskIndex = index;
+                    }
+                });
+                
+                // Add current task first
+                if (currentTaskIndex !== -1) {
+                    sortedSchedule.push({ ...schedule[currentTaskIndex], originalIndex: currentTaskIndex, status: 'current' });
+                }
+                
+                // Add upcoming tasks
+                schedule.forEach((item, index) => {
+                    if (index === currentTaskIndex) return;
+                    const item24Time = convertTo24Hour(item.time, item.ampm);
+                    if (currentTime24 < item24Time) {
+                        sortedSchedule.push({ ...item, originalIndex: index, status: 'upcoming' });
+                    }
+                });
+                
+                // Add completed tasks
+                schedule.forEach((item, index) => {
+                    if (index === currentTaskIndex) return;
+                    const item24Time = convertTo24Hour(item.time, item.ampm);
+                    const itemEndTime = calculateEndTime(item24Time, item.duration);
+                    if (currentTime24 >= itemEndTime) {
+                        sortedSchedule.push({ ...item, originalIndex: index, status: 'completed' });
+                    }
+                });
+                
+                container.innerHTML = sortedSchedule.map((item) => {
+                    let countdownHtml = '';
+                    
+                    if (item.status === 'current') {
+                        const item24Time = convertTo24Hour(item.time, item.ampm);
+                        const itemEndTime = calculateEndTime(item24Time, item.duration);
+                        const currentTime24 = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                        const remainingTime = calculateRemainingTime(currentTime24, itemEndTime);
+                        countdownHtml = `<div class="countdown-timer text-sm mt-1">⏱️ ${remainingTime} remaining</div>`;
+                    }
+                    
+                    return `
+                        <div class="time-slot ${item.status} rounded-xl p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-2xl">${categoryEmojis[item.category]}</div>
+                                    <div>
+                                        <div class="font-bold text-white text-lg">${item.time} ${item.ampm} - ${item.activity}</div>
+                                        <div class="text-white/80 text-sm">${item.duration}h • ${item.category.charAt(0).toUpperCase() + item.category.slice(1)}</div>
+                                        ${countdownHtml}
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    ${item.status !== 'completed' ? `
+                                        <button onclick="editActivity(${item.originalIndex})" class="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-all">
+                                            ✏️
+                                        </button>
+                                        <button onclick="deleteActivity(${item.originalIndex})" class="p-2 rounded-lg bg-white/20 hover:bg-red-500/50 text-white transition-all">
+                                            🗑️
+                                        </button>
+                                    ` : `
+                                        <div class="text-green-400/80 text-sm px-2 py-1 bg-green-500/20 rounded-lg">
+                                            ✅ Completed
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else if (isViewingYesterday) {
+                // For yesterday, show all activities as completed (red) with no edit/delete buttons
+                container.innerHTML = schedule.map((item, index) => {
+                    return `
+                        <div class="time-slot completed rounded-xl p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-2xl">${categoryEmojis[item.category]}</div>
+                                    <div>
+                                        <div class="font-bold text-white text-lg">${item.time} ${item.ampm} - ${item.activity}</div>
+                                        <div class="text-white/80 text-sm">${item.duration}h • ${item.category.charAt(0).toUpperCase() + item.category.slice(1)}</div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <div class="text-white/60 text-sm px-2 py-1">
+                                        Past Event
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                // For other days (future), show all activities as editable (blue)
+                container.innerHTML = schedule.map((item, index) => {
+                    return `
+                        <div class="time-slot upcoming rounded-xl p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-2xl">${categoryEmojis[item.category]}</div>
+                                    <div>
+                                        <div class="font-bold text-white text-lg">${item.time} ${item.ampm} - ${item.activity}</div>
+                                        <div class="text-white/80 text-sm">${item.duration}h • ${item.category.charAt(0).toUpperCase() + item.category.slice(1)}</div>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="editActivity(${index})" class="p-2 rounded-lg bg-white/20 hover:bg-white/30 text-white transition-all">
+                                        ✏️
+                                    </button>
+                                    <button onclick="deleteActivity(${index})" class="p-2 rounded-lg bg-white/20 hover:bg-red-500/50 text-white transition-all">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        function updateStats() {
+            const stats = {
+                study: 0,
+                coding: 0,
+                mobile: 0,
+                sleep: 0
+            };
+            
+            schedule.forEach(item => {
+                if (stats.hasOwnProperty(item.category)) {
+                    stats[item.category] += parseFloat(item.duration);
+                }
+            });
+            
+            document.getElementById('studyHours').textContent = `${stats.study}h`;
+            document.getElementById('codingHours').textContent = `${stats.coding}h`;
+            document.getElementById('mobileHours').textContent = `${stats.mobile}h`;
+            document.getElementById('sleepHours').textContent = `${stats.sleep}h`;
+        }
+        
+        function previousDay() {
+            currentViewDate.setDate(currentViewDate.getDate() - 1);
+            updateScheduleTitle();
+            loadSampleSchedule();
+        }
+        
+        function nextDay() {
+            currentViewDate.setDate(currentViewDate.getDate() + 1);
+            updateScheduleTitle();
+            loadSampleSchedule();
+        }
+        
+        function updateScheduleTitle() {
+            const today = new Date();
+            const isToday = currentViewDate.toDateString() === today.toDateString();
+            const isYesterday = currentViewDate.toDateString() === new Date(today.getTime() - 24*60*60*1000).toDateString();
+            const isTomorrow = currentViewDate.toDateString() === new Date(today.getTime() + 24*60*60*1000).toDateString();
+            
+            let title = '';
+            if (isToday) {
+                title = "Today's Schedule";
+            } else if (isYesterday) {
+                title = "Yesterday's Schedule";
+            } else if (isTomorrow) {
+                title = "Tomorrow's Schedule";
+            } else {
+                const dayName = currentViewDate.toLocaleDateString('en-US', { weekday: 'long' });
+                const dateStr = currentViewDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                title = `${dayName}, ${dateStr} Schedule`;
+            }
+            
+            document.getElementById('scheduleTitle').textContent = title;
+            
+            // Show/hide add button based on current view
+            const addButton = document.getElementById('addButton');
+            if (isToday || isTomorrow) {
+                addButton.style.display = 'flex';
+            } else {
+                addButton.style.display = 'none';
+            }
+        }
+        
+        function loadSampleSchedule() {
+            // Get day of week for the current view date (0 = Sunday, 1 = Monday, etc.)
+            const viewDay = currentViewDate.getDay();
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            // University class schedules by day
+            const weeklySchedule = {
+                Saturday: [
+                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 (Section C) - Room: 803', category: 'study', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 1022', category: 'coding', duration: 1 }
+                ],
+                Sunday: [
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 1003', category: 'coding', duration: 1 },
+                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 (Section C) - Room: 803', category: 'study', duration: 1 }
+                ],
+                Monday: [
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 434 (Section J) - Comlab: 8', category: 'coding', duration: 1 },
+                    { time: '09:35', ampm: 'AM', activity: 'CSC 434 (Section J) - Comlab: 8', category: 'coding', duration: 1 },
+                    { time: '10:40', ampm: 'AM', activity: 'MAT 257 - Room: 803', category: 'study', duration: 1 },
+                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 1023', category: 'coding', duration: 1 },
+                    { time: '01:10', ampm: 'PM', activity: 'CSC 330 (Section F) - EEElab6', category: 'coding', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 330 (Section F) - EEElab6', category: 'coding', duration: 1 },
+                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 504', category: 'coding', duration: 1 }
+                ],
+                Tuesday: [
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 1008', category: 'coding', duration: 1 },
+                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 821', category: 'coding', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 1022', category: 'coding', duration: 1 },
+                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 520', category: 'coding', duration: 1 }
+                ],
+                Wednesday: [
+                    { time: '08:30', ampm: 'AM', activity: 'CSC 433 (Section J) - Room: 904', category: 'coding', duration: 1 },
+                    { time: '11:45', ampm: 'AM', activity: 'CSC 247 (Section I) - Room: 1009', category: 'coding', duration: 1 },
+                    { time: '02:15', ampm: 'PM', activity: 'CSC 329 (Section F) - Room: 905', category: 'coding', duration: 1 },
+                    { time: '03:20', ampm: 'PM', activity: 'CSC 197 (Section A) - Room: 520', category: 'coding', duration: 1 }
+                ],
+                Thursday: [
+                    // Holiday - No classes, relaxed schedule
+                    { time: '09:00', ampm: 'AM', activity: 'Extended Study Session', category: 'study', duration: 2 },
+                    { time: '11:30', ampm: 'AM', activity: 'Personal Coding Project', category: 'coding', duration: 2 },
+                    { time: '02:00', ampm: 'PM', activity: 'Skill Development/Online Course', category: 'study', duration: 1.5 },
+                    { time: '04:00', ampm: 'PM', activity: 'Exercise/Physical Activity', category: 'exercise', duration: 1 },
+                    { time: '06:00', ampm: 'PM', activity: 'Hobby Time/Reading', category: 'free', duration: 1.5 }
+                ],
+                Friday: [
+                    // Holiday with special prayer time
+                    { time: '08:00', ampm: 'AM', activity: 'Morning Study Session', category: 'study', duration: 2 },
+                    { time: '10:30', ampm: 'AM', activity: 'Personal Projects', category: 'coding', duration: 1.5 },
+                    { time: '12:30', ampm: 'PM', activity: 'Prayer Time 🕌', category: 'personal', duration: 1.5 },
+                    { time: '02:00', ampm: 'PM', activity: 'Family Time/Rest', category: 'free', duration: 1.5 },
+                    { time: '04:00', ampm: 'PM', activity: 'Assignment Work', category: 'study', duration: 2 },
+                    { time: '06:30', ampm: 'PM', activity: 'Reflection & Planning', category: 'personal', duration: 1 }
+                ]
+            };
+            
+            // Load schedule for the current view date
+            const viewDayName = days[viewDay];
+            schedule = weeklySchedule[viewDayName] || weeklySchedule['Monday'] || [];
+            
+            // Add some personal activities around classes
+            const personalActivities = [
+                { time: '06:30', ampm: 'AM', activity: 'Wake up & Morning routine', category: 'personal', duration: 1 },
+                { time: '07:30', ampm: 'AM', activity: 'Breakfast', category: 'meal', duration: 1 },
+                { time: '12:45', ampm: 'PM', activity: 'Lunch Break', category: 'meal', duration: 0.5 },
+                { time: '05:00', ampm: 'PM', activity: 'Study/Assignment time', category: 'study', duration: 2 },
+                { time: '07:00', ampm: 'PM', activity: 'Dinner', category: 'meal', duration: 1 },
+                { time: '08:00', ampm: 'PM', activity: 'Free time/Mobile', category: 'mobile', duration: 1 },
+                { time: '09:00', ampm: 'PM', activity: 'Review notes', category: 'study', duration: 1.5 },
+                { time: '10:30', ampm: 'PM', activity: 'Prepare for bed', category: 'personal', duration: 0.5 },
+                { time: '11:00', ampm: 'PM', activity: 'Sleep', category: 'sleep', duration: 7.5 }
+            ];
+            
+            // Combine class schedule with personal activities
+            schedule = [...schedule, ...personalActivities];
+            
+            renderSchedule();
+            updateStats();
+        }
+        
+        // Check for schedule conflicts
+        function checkScheduleConflict(newTime, newAmpm, newDuration, excludeIndex = -1) {
+            const newStart24 = convertTo24Hour(newTime, newAmpm);
+            const newEnd24 = calculateEndTime(newStart24, newDuration);
+            
+            for (let i = 0; i < schedule.length; i++) {
+                if (i === excludeIndex) continue; // Skip the item being edited
+                
+                const existingStart24 = convertTo24Hour(schedule[i].time, schedule[i].ampm);
+                const existingEnd24 = calculateEndTime(existingStart24, schedule[i].duration);
+                
+                // Check if times overlap
+                if ((newStart24 < existingEnd24 && newEnd24 > existingStart24)) {
+                    return {
+                        conflict: true,
+                        conflictingActivity: schedule[i],
+                        conflictingIndex: i
+                    };
+                }
+            }
+            
+            return { conflict: false };
+        }
+        
+        // Show error message
+        function showErrorMessage(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorDetails = document.getElementById('errorDetails');
+            errorDetails.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            // Hide success message if visible
+            document.getElementById('successMessage').classList.add('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Show success message
+        function showSuccessMessage() {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.classList.remove('hidden');
+            
+            // Hide error message if visible
+            document.getElementById('errorMessage').classList.add('hidden');
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                successDiv.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // Form submission
+        document.getElementById('activityForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const time = document.getElementById('timeInput').value;
+            const ampm = document.getElementById('ampmInput').value;
+            const activity = document.getElementById('activityInput').value;
+            const category = document.getElementById('categoryInput').value;
+            const duration = parseFloat(document.getElementById('durationInput').value);
+            
+            if (!time || !activity) {
+                showErrorMessage('Please fill in all required fields (Time and Activity).');
+                return;
+            }
+            
+            // Check for schedule conflicts
+            const conflictCheck = checkScheduleConflict(time, ampm, duration, editingIndex);
+            
+            if (conflictCheck.conflict) {
+                const conflictingActivity = conflictCheck.conflictingActivity;
+                const conflictStart = `${conflictingActivity.time} ${conflictingActivity.ampm}`;
+                const conflictEnd24 = calculateEndTime(convertTo24Hour(conflictingActivity.time, conflictingActivity.ampm), conflictingActivity.duration);
+                const conflictEnd12 = convertTo12Hour(conflictEnd24);
+                const conflictEnd = `${conflictEnd12.time} ${conflictEnd12.ampm}`;
+                
+                showErrorMessage(`Time conflict with "${conflictingActivity.activity}" (${conflictStart} - ${conflictEnd}). Please choose a different time slot.`);
+                return;
+            }
+            
+            const newActivity = { time, ampm, activity, category, duration };
+            
+            if (editingIndex >= 0) {
+                schedule[editingIndex] = newActivity;
+                showSuccessMessage();
+            } else {
+                schedule.push(newActivity);
+                showSuccessMessage();
+            }
+            
+            renderSchedule();
+            updateStats();
+            closeModal();
+        });
+        
+        // Rotate motivational quotes
+        setInterval(() => {
+            const quoteElement = document.querySelector('.motivational-quote');
+            const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            quoteElement.textContent = `"${randomQuote}"`;
+        }, 8000);
+        
+        // Close modal when clicking outside
+        document.getElementById('modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Time calculation functions
+        function convertTo24Hour(time12, ampm) {
+            const [hours, minutes] = time12.split(':').map(Number);
+            let hours24 = hours;
+            
+            if (ampm === 'AM' && hours === 12) {
+                hours24 = 0;
+            } else if (ampm === 'PM' && hours !== 12) {
+                hours24 = hours + 12;
+            }
+            
+            return hours24.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0');
+        }
+        
+        function convertTo12Hour(time24) {
+            const [hours, minutes] = time24.split(':').map(Number);
+            let hours12 = hours;
+            let ampm = 'AM';
+            
+            if (hours === 0) {
+                hours12 = 12;
+                ampm = 'AM';
+            } else if (hours === 12) {
+                hours12 = 12;
+                ampm = 'PM';
+            } else if (hours > 12) {
+                hours12 = hours - 12;
+                ampm = 'PM';
+            }
+            
+            return {
+                time: hours12.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0'),
+                ampm: ampm
+            };
+        }
+        
+        function calculateEndTime(startTime, duration) {
+            const [hours, minutes] = startTime.split(':').map(Number);
+            const startMinutes = hours * 60 + minutes;
+            const endMinutes = startMinutes + (duration * 60);
+            const endHours = Math.floor(endMinutes / 60) % 24;
+            const endMins = endMinutes % 60;
+            return endHours.toString().padStart(2, '0') + ':' + endMins.toString().padStart(2, '0');
+        }
+        
+        function calculateRemainingTime(currentTime, endTime) {
+            const [currentHours, currentMinutes] = currentTime.split(':').map(Number);
+            const [endHours, endMinutes] = endTime.split(':').map(Number);
+            
+            const currentTotalMinutes = currentHours * 60 + currentMinutes;
+            const endTotalMinutes = endHours * 60 + endMinutes;
+            
+            let remainingMinutes = endTotalMinutes - currentTotalMinutes;
+            if (remainingMinutes < 0) remainingMinutes += 24 * 60; // Handle day overflow
+            
+            const hours = Math.floor(remainingMinutes / 60);
+            const minutes = remainingMinutes % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m`;
+            } else {
+                return `${minutes}m`;
+            }
+        }
+        
+        function updateCurrentTime() {
+            // Get current time and convert to Bangladesh time (GMT+6)
+            const now = new Date();
+            
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Dhaka'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+            
+            // Update header clock
+            const headerTimeString = now.toLocaleTimeString('en-US', { 
+                hour12: true, 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Dhaka'
+            });
+            const dateString = now.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                timeZone: 'Asia/Dhaka'
+            });
+            const dayString = now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                timeZone: 'Asia/Dhaka'
+            });
+            
+            document.getElementById('headerTime').textContent = headerTimeString;
+            document.getElementById('headerDate').textContent = dateString;
+            document.getElementById('headerDay').textContent = dayString + ' (GMT+6)';
+        }
+        
+        // Update time every second
+        setInterval(() => {
+            updateCurrentTime();
+            renderSchedule(); // Re-render to update countdown timers
+        }, 1000);
+        
+        // Mouse tracking for hover effects
+        let isMouseTracking = false;
+        
+        document.addEventListener('mousemove', function(e) {
+            if (!isMouseTracking) {
+                isMouseTracking = true;
+                requestAnimationFrame(() => {
+                    const timeSlots = document.querySelectorAll('.time-slot:hover');
+                    timeSlots.forEach(slot => {
+                        const rect = slot.getBoundingClientRect();
+                        if (e.clientX >= rect.left && e.clientX <= rect.right && 
+                            e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                            const x = ((e.clientX - rect.left) / rect.width) * 100;
+                            const y = ((e.clientY - rect.top) / rect.height) * 100;
+                            
+                            slot.style.setProperty('--mouse-x', x + '%');
+                            slot.style.setProperty('--mouse-y', y + '%');
+                        }
+                    });
+                    isMouseTracking = false;
+                });
+            }
+        });
+        
+        // Initialize
+        updateCurrentTime();
+        updateScheduleTitle();
+        renderSchedule();
+        updateStats();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96767d1e5141ba53',t:'MTc1Mzg5NTYyOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
